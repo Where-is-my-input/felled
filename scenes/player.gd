@@ -26,6 +26,17 @@ var angle_step_timer: float = 0.0
 # then folded into velocity and reset every physics frame.
 var rope_pull: Vector2 = Vector2.ZERO
 
+# Set by RopeManager when a rope attaches to this player (see rope_manager.gd).
+# "previous"/"next" refer to connection order — rope_to_previous is the rope
+# where this player is the later-joined end, rope_to_next the earlier end.
+var rope_to_previous: Node = null
+var rope_to_next: Node = null
+
+# Replicated (see player.tscn's MultiplayerSynchronizer) so every peer's local
+# Rope instance can see who's pulling, not just the pulling player's own client.
+var is_pulling_previous: bool = false
+var is_pulling_next: bool = false
+
 func _ready() -> void:
 	print("Multiplayer authority will be set to: ", name.to_int())
 	set_multiplayer_authority(name.to_int())
@@ -38,6 +49,9 @@ func _physics_process(delta: float) -> void:
 	if !is_multiplayer_authority(): return
 
 	var horizontal_input: float = Input.get_axis("ui_left", "ui_right")
+
+	is_pulling_previous = rope_to_previous != null and Input.is_action_pressed("pull_previous")
+	is_pulling_next = rope_to_next != null and Input.is_action_pressed("pull_next")
 
 	# Add the gravity.
 	if not is_on_floor():

@@ -65,6 +65,11 @@ func _create_rope(id_a: int, id_b: int) -> void:
 	scene_root.add_child(rope)
 	rope.setup(player_a, player_b)
 
+	# player_a is the earlier-joined end (id_a), player_b the later-joined end
+	# (id_b) — see the rope_to_previous/rope_to_next convention in player.gd.
+	player_a.rope_to_next = rope
+	player_b.rope_to_previous = rope
+
 func _wait_for_player(id: int) -> Node:
 	var player: Node = scene_root.get_node_or_null(str(id))
 	var attempts := 0
