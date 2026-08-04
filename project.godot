@@ -30,6 +30,7 @@ LowLevelNetworkHandler="*res://scenes/lowLevelNetowrk/lowLevelNetworkHandler.gd"
 ClientNetworkGlobals="*res://scenes/lowLevelNetowrk/clientNetworkGlobals.gd"
 ServerNetworkGlobals="*res://scenes/lowLevelNetowrk/serverNetworkGlobals.gd"
 Global="*uid://urqmrrqc5yws"
+RopeSettingsStore="*res://scenes/rope_settings_store.gd"
 
 [display]
 

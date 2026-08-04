@@ -6,4 +6,4 @@ func _ready() -> void:
 		var t = create_tween()
 		t.tween_property(texture, "modulate", Color(1.0, 1.0, 1.0, 1.0), 2.5)
 		await t.finished
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

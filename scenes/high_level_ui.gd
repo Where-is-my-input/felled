@@ -1,9 +1,6 @@
 extends Control
 
-@export var player_scene: PackedScene
-
-@onready var multiplayer_spawner: MultiplayerSpawner = $"../MultiplayerSpawner"
-@onready var rope_manager: Node = $"../RopeManager"
+const DEBUG_LEVEL_SCENE: String = "res://scenes/debug_level.tscn"
 
 @onready var menu_panel: VBoxContainer = $MenuCenter/MenuPanel
 @onready var btn_host: Button = $MenuCenter/MenuPanel/HostRow/btnHost
@@ -26,10 +23,6 @@ extends Control
 
 func _ready() -> void:
 	btn_host.grab_focus()
-	multiplayer.connected_to_server.connect(_on_connected_to_server)
-	multiplayer.server_disconnected.connect(_on_disconnected)
-	multiplayer_spawner.networkPlayer = player_scene
-	multiplayer_spawner.add_spawnable_scene(player_scene.resource_path)
 
 	btn_host.pressed.connect(_on_btn_host_pressed)
 	btn_rope_settings.pressed.connect(_on_btn_rope_settings_pressed)
@@ -64,6 +57,7 @@ func _on_btn_quit_pressed() -> void:
 
 func _on_btn_connect_pressed() -> void:
 	HighLevelNetworkHandler.startClient(port.text, ip.text)
+	get_tree().change_scene_to_file(DEBUG_LEVEL_SCENE)
 
 func _on_btn_host_pressed() -> void:
 	Global.notify.emit("Starting server...")
@@ -75,20 +69,4 @@ func _on_btn_host_pressed() -> void:
 		push_error("Failed to start server")
 		return
 
-	Global.notify.emit("Server started, spawning player...")
-	var player: Node = player_scene.instantiate()
-	player.name = "1"  # Server has peer ID 1
-	get_parent().add_child(player)
-	rope_manager.register_initial_player(1)
-	Global.notify.emit("Server player spawned with name: " + player.name)
-	set_buttons_visibility(false)
-
-func _on_connected_to_server() -> void:
-	set_buttons_visibility(false)
-
-func _on_disconnected() -> void:
-	_show_menu()
-	set_buttons_visibility(true)
-
-func set_buttons_visibility(should_show: bool) -> void:
-	visible = should_show
+	get_tree().change_scene_to_file(DEBUG_LEVEL_SCENE)
