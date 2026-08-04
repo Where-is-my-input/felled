@@ -44,7 +44,14 @@ func _physics_process(delta: float) -> void:
 		velocity += get_gravity() * delta
 	else:
 		if charging_jump:
-			if Input.is_action_just_released("ui_accept"):
+			if Input.is_action_pressed("ui_down"):
+				# Cancel the charge outright — no jump, and ground movement
+				# resumes immediately since charging_jump is now false.
+				charging_jump = false
+				jump_charge_time = 0.0
+				jump_direction = 0.0
+				angle_step_timer = 0.0
+			elif Input.is_action_just_released("ui_accept"):
 				var charge_ratio: float = clamp(jump_charge_time / MAX_CHARGE_TIME, 0.0, 1.0)
 				var launch_velocity_y: float = lerp(MIN_JUMP_VELOCITY, MAX_JUMP_VELOCITY, charge_ratio)
 				var launch_horizontal_speed: float = lerp(MIN_HORIZONTAL_LAUNCH_SPEED, MAX_HORIZONTAL_LAUNCH_SPEED, charge_ratio)
