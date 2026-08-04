@@ -1,7 +1,7 @@
 extends Node2D
 
-@export var stiffness: float = 30.0
-@export var damping: float = 11.0
+@export var stiffness: float = 4.0
+@export var damping: float = 4.0
 @export var rest_length: float = 64.0
 @export var max_pull_accel: float = 4000.0
 

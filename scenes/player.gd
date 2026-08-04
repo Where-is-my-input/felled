@@ -7,9 +7,14 @@ const MAX_JUMP_VELOCITY = -650.0
 const MAX_CHARGE_TIME = 1.0
 const MAX_JUMP_ANGLE_DEG = 75.0
 const JUMP_ANGLE_STEP_DEG = 5.0
-const JUMP_ANGLE_STEP_INTERVAL = 0.1
+const JUMP_ANGLE_STEP_INTERVAL = 0.025
 const MIN_HORIZONTAL_LAUNCH_SPEED = 200.0
-const MAX_HORIZONTAL_LAUNCH_SPEED = 600.0
+const MAX_HORIZONTAL_LAUNCH_SPEED = 900.0
+const ROPE_PULL_SCALE_WHILE_JUMPING = 0.35
+const MIN_JUMP_INDICATOR_LENGTH = 16.0
+const MAX_JUMP_INDICATOR_LENGTH = 48.0
+
+@onready var jump_indicator: Line2D = $JumpIndicator
 
 var charging_jump: bool = false
 var jump_charge_time: float = 0.0
@@ -52,10 +57,11 @@ func _physics_process(delta: float) -> void:
 				jump_charge_time = min(jump_charge_time, MAX_CHARGE_TIME)
 				if horizontal_input != 0.0:
 					var input_sign: float = sign(horizontal_input)
-					if jump_direction == 0.0:
-						jump_direction = input_sign
-						angle_step_timer = 0.0
-					elif input_sign != sign(jump_direction):
+					# Compare directly against the target (not sign() vs sign()) so a ramp
+					# that's crossing through neutral keeps stepping smoothly instead of
+					# hitting a "starting from zero" special case and snapping the rest of
+					# the way to max.
+					if jump_direction != input_sign:
 						angle_step_timer += delta
 						var step_fraction: float = JUMP_ANGLE_STEP_DEG / MAX_JUMP_ANGLE_DEG
 						while angle_step_timer >= JUMP_ANGLE_STEP_INTERVAL:
@@ -79,7 +85,28 @@ func _physics_process(delta: float) -> void:
 			velocity.x = move_toward(velocity.x, 0, SPEED)
 	# Airborne: no horizontal control — velocity.x keeps whatever the jump launched it with.
 
-	velocity += rope_pull * delta
+	# Charging or mid-air, the rope should be easier to fight against so a jump
+	# can actually pull you away from your rope-mate instead of being reeled in.
+	var rope_pull_scale: float = ROPE_PULL_SCALE_WHILE_JUMPING if (charging_jump or not is_on_floor()) else 1.0
+	velocity += rope_pull * rope_pull_scale * delta
 	rope_pull = Vector2.ZERO
 
+	_update_jump_indicator()
+
 	move_and_slide()
+
+# Shows where the jump will actually launch, using the same charge_ratio math
+# as the release branch above, so it stays accurate throughout the charge.
+func _update_jump_indicator() -> void:
+	if not charging_jump:
+		jump_indicator.visible = false
+		return
+
+	var charge_ratio: float = clamp(jump_charge_time / MAX_CHARGE_TIME, 0.0, 1.0)
+	var launch_velocity_y: float = lerp(MIN_JUMP_VELOCITY, MAX_JUMP_VELOCITY, charge_ratio)
+	var launch_horizontal_speed: float = lerp(MIN_HORIZONTAL_LAUNCH_SPEED, MAX_HORIZONTAL_LAUNCH_SPEED, charge_ratio)
+	var launch_direction: Vector2 = Vector2(jump_direction * launch_horizontal_speed, launch_velocity_y).normalized()
+	var indicator_length: float = lerp(MIN_JUMP_INDICATOR_LENGTH, MAX_JUMP_INDICATOR_LENGTH, charge_ratio)
+
+	jump_indicator.visible = true
+	jump_indicator.points = PackedVector2Array([Vector2.ZERO, launch_direction * indicator_length])
