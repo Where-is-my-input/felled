@@ -2,8 +2,10 @@ extends Node2D
 
 # KNOWN GAP: the pull below is a straight line between the two players and
 # does not check the tilemap for terrain in between — a rope can currently
-# pull straight through a wall instead of wrapping around it.
-# Not fixed yet — flagged for later.
+# pull straight through a wall instead of wrapping around it (no
+# wrap-around/pathfinding). Not fixed yet — flagged for later.
+# (The separate issue where the max-length hard clamp could teleport a player
+# straight through solid ground has been fixed — see move_and_collide below.)
 
 @export var stiffness: float = 4.0
 @export var damping: float = 4.0
@@ -93,10 +95,14 @@ func _physics_process(_delta: float) -> void:
 		if distance > effective_max_length:
 			var excess: float = distance - effective_max_length
 			var half_correction: Vector2 = direction_to_b * (excess * 0.5)
+			# move_and_collide instead of a raw global_position write so this
+			# correction stops at solid ground/walls instead of teleporting
+			# straight through them — the exact failure mode reported as
+			# players getting "zipped through the ground" while dangling.
 			if player_a.is_multiplayer_authority():
-				player_a.global_position += half_correction
+				player_a.move_and_collide(half_correction)
 			if player_b.is_multiplayer_authority():
-				player_b.global_position -= half_correction
+				player_b.move_and_collide(-half_correction)
 			# Recompute so the spring math and line below use the corrected
 			# (capped) distance instead of the stale, over-max one.
 			offset = player_b.global_position - player_a.global_position

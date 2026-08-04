@@ -13,6 +13,8 @@ const MAX_HORIZONTAL_LAUNCH_SPEED = 900.0
 const ROPE_PULL_SCALE_WHILE_JUMPING = 0.35
 const MIN_JUMP_INDICATOR_LENGTH = 16.0
 const MAX_JUMP_INDICATOR_LENGTH = 48.0
+const DANGLE_STEER_ACCEL = 600.0
+const DANGLE_STEER_MAX_SPEED = 220.0
 
 @onready var jump_indicator: Line2D = $JumpIndicator
 
@@ -20,6 +22,14 @@ var charging_jump: bool = false
 var jump_charge_time: float = 0.0
 var jump_direction: float = 0.0
 var angle_step_timer: float = 0.0
+
+# True only from the moment a self-initiated jump launches until landing —
+# NOT true just because the player is airborne (e.g. yanked off the ground by
+# the rope, or walked off a ledge). Gates horizontal air control: while
+# is_jumping, velocity.x is left alone so an aimed jump's trajectory can't be
+# steered after the fact; whenever airborne without it, the player is just
+# dangling/falling and can freely steer left/right.
+var is_jumping: bool = false
 
 # Accumulated by any Rope this frame (see rope.gd, which runs at a lower
 # process_physics_priority so its pull lands before it's consumed below),
@@ -58,6 +68,7 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 	else:
+		is_jumping = false
 		if charging_jump:
 			if Input.is_action_pressed("ui_down"):
 				# Cancel the charge outright — no jump, and ground movement
@@ -71,6 +82,7 @@ func _physics_process(delta: float) -> void:
 				var launch_velocity_y: float = lerp(MIN_JUMP_VELOCITY, MAX_JUMP_VELOCITY, charge_ratio)
 				var launch_horizontal_speed: float = lerp(MIN_HORIZONTAL_LAUNCH_SPEED, MAX_HORIZONTAL_LAUNCH_SPEED, charge_ratio)
 				velocity = Vector2(jump_direction * launch_horizontal_speed, launch_velocity_y)
+				is_jumping = true
 				charging_jump = false
 				jump_charge_time = 0.0
 				jump_direction = 0.0
@@ -105,7 +117,14 @@ func _physics_process(delta: float) -> void:
 			velocity.x = horizontal_input * SPEED
 		else:
 			velocity.x = move_toward(velocity.x, 0, SPEED)
-	# Airborne: no horizontal control — velocity.x keeps whatever the jump launched it with.
+	elif not is_jumping:
+		# Airborne but not from a self-initiated jump — dangling off the rope
+		# (or just falling) rather than mid-trajectory, so steering is fine.
+		if horizontal_input != 0.0:
+			velocity.x = move_toward(velocity.x, horizontal_input * DANGLE_STEER_MAX_SPEED, DANGLE_STEER_ACCEL * delta)
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, DANGLE_STEER_ACCEL * delta)
+	# Airborne from a jump: no horizontal control — velocity.x keeps whatever the jump launched it with.
 
 	# Charging or mid-air, the rope should be easier to fight against so a jump
 	# can actually pull you away from your rope-mate instead of being reeled in.
