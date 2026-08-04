@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://bj4m1ogeondfs" path="res://scenes/multiplayer_spawner.gd" id="4_jyhfs"]
 [ext_resource type="Script" uid="uid://yoqqrvbvida0" path="res://scenes/rope_manager.gd" id="5_ropemgr"]
 [ext_resource type="Script" uid="uid://bwrsht1ccdb37" path="res://scenes/dynamic_camera.gd" id="6_dyncam"]
+[ext_resource type="Script" uid="uid://drmr5enrq1d3x" path="res://scenes/rope_settings_panel.gd" id="7_ropeset"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sugp2"]
 texture = ExtResource("2_0wfyh")
@@ -120,16 +121,20 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 430.0
-offset_top = 153.0
-offset_right = 430.0
-offset_bottom = 153.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("3_sugp2")
 player_scene = ExtResource("1_o5qli")
 
-[node name="MenuPanel" type="VBoxContainer" parent="highLevelUI" unique_id=800653196]
+[node name="MenuCenter" type="Control" parent="highLevelUI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MenuPanel" type="VBoxContainer" parent="highLevelUI/MenuCenter" unique_id=800653196]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -144,27 +149,38 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="btnHost" type="Button" parent="highLevelUI/MenuPanel" unique_id=1197370265]
-custom_minimum_size = Vector2(200, 44)
+[node name="HostRow" type="HBoxContainer" parent="highLevelUI/MenuCenter/MenuPanel" unique_id=1472264877]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="btnHost" type="Button" parent="highLevelUI/MenuCenter/MenuPanel/HostRow" unique_id=1197370265]
+custom_minimum_size = Vector2(156, 44)
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Host Lobby"
 
-[node name="btnJoin" type="Button" parent="highLevelUI/MenuPanel" unique_id=873212588]
+[node name="btnRopeSettings" type="Button" parent="highLevelUI/MenuCenter/MenuPanel/HostRow" unique_id=31956459]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+tooltip_text = "Edit rope constraints"
+text = "⚙"
+
+[node name="btnJoin" type="Button" parent="highLevelUI/MenuCenter/MenuPanel" unique_id=873212588]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 text = "Join Lobby"
 
-[node name="btnSettings" type="Button" parent="highLevelUI/MenuPanel" unique_id=1818441674]
+[node name="btnSettings" type="Button" parent="highLevelUI/MenuCenter/MenuPanel" unique_id=1818441674]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 text = "Settings"
 
-[node name="btnQuit" type="Button" parent="highLevelUI/MenuPanel" unique_id=1318399463]
+[node name="btnQuit" type="Button" parent="highLevelUI/MenuCenter/MenuPanel" unique_id=1318399463]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 text = "Quit Game"
 
-[node name="JoinPanel" type="VBoxContainer" parent="highLevelUI" unique_id=1412721273]
+[node name="JoinPanel" type="VBoxContainer" parent="highLevelUI/MenuCenter" unique_id=1412721273]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -180,29 +196,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="ip" type="LineEdit" parent="highLevelUI/JoinPanel" unique_id=1858062240]
+[node name="ip" type="LineEdit" parent="highLevelUI/MenuCenter/JoinPanel" unique_id=1858062240]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "localhost"
 placeholder_text = "IP address"
 
-[node name="port" type="LineEdit" parent="highLevelUI/JoinPanel" unique_id=1681279032]
+[node name="port" type="LineEdit" parent="highLevelUI/MenuCenter/JoinPanel" unique_id=1681279032]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "42069"
 placeholder_text = "Port"
 
-[node name="btnConnect" type="Button" parent="highLevelUI/JoinPanel" unique_id=1968597712]
+[node name="btnConnect" type="Button" parent="highLevelUI/MenuCenter/JoinPanel" unique_id=1968597712]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 text = "Connect"
 
-[node name="btnJoinBack" type="Button" parent="highLevelUI/JoinPanel" unique_id=1272675419]
+[node name="btnJoinBack" type="Button" parent="highLevelUI/MenuCenter/JoinPanel" unique_id=1272675419]
 custom_minimum_size = Vector2(200, 36)
 layout_mode = 2
 text = "Back"
 
-[node name="SettingsPanel" type="VBoxContainer" parent="highLevelUI" unique_id=1405714041]
+[node name="SettingsPanel" type="VBoxContainer" parent="highLevelUI/MenuCenter" unique_id=1405714041]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -218,12 +234,49 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="lblPlaceholder" type="Label" parent="highLevelUI/SettingsPanel" unique_id=13809067]
+[node name="lblPlaceholder" type="Label" parent="highLevelUI/MenuCenter/SettingsPanel" unique_id=13809067]
 layout_mode = 2
 text = "Settings coming soon."
 horizontal_alignment = 1
 
-[node name="btnSettingsBack" type="Button" parent="highLevelUI/SettingsPanel" unique_id=2074546752]
+[node name="btnSettingsBack" type="Button" parent="highLevelUI/MenuCenter/SettingsPanel" unique_id=2074546752]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+text = "Back"
+
+[node name="RopeSettingsPanel" type="VBoxContainer" parent="highLevelUI/MenuCenter" unique_id=1212225759]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -170.0
+offset_top = -220.0
+offset_right = 170.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+script = ExtResource("7_ropeset")
+
+[node name="lblTitle" type="Label" parent="highLevelUI/MenuCenter/RopeSettingsPanel" unique_id=1881643594]
+layout_mode = 2
+text = "Rope Constraints (Host Only)"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="highLevelUI/MenuCenter/RopeSettingsPanel" unique_id=261419447]
+custom_minimum_size = Vector2(340, 340)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FieldsContainer" type="VBoxContainer" parent="highLevelUI/MenuCenter/RopeSettingsPanel/ScrollContainer" unique_id=52751106]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="btnRopeSettingsBack" type="Button" parent="highLevelUI/MenuCenter/RopeSettingsPanel" unique_id=825679365]
 custom_minimum_size = Vector2(200, 36)
 layout_mode = 2
 text = "Back"
@@ -238,5 +291,4 @@ networkPlayer = ExtResource("1_o5qli")
 script = ExtResource("5_ropemgr")
 
 [node name="GameCamera" type="Camera2D" parent="." unique_id=1908219516]
-position = Vector2(579, 328)
 script = ExtResource("6_dyncam")
