@@ -16,6 +16,11 @@ var jump_charge_time: float = 0.0
 var jump_direction: float = 0.0
 var angle_step_timer: float = 0.0
 
+# Accumulated by any Rope this frame (see rope.gd, which runs at a lower
+# process_physics_priority so its pull lands before it's consumed below),
+# then folded into velocity and reset every physics frame.
+var rope_pull: Vector2 = Vector2.ZERO
+
 func _ready() -> void:
 	print("Multiplayer authority will be set to: ", name.to_int())
 	set_multiplayer_authority(name.to_int())
@@ -73,5 +78,8 @@ func _physics_process(delta: float) -> void:
 		else:
 			velocity.x = move_toward(velocity.x, 0, SPEED)
 	# Airborne: no horizontal control — velocity.x keeps whatever the jump launched it with.
+
+	velocity += rope_pull * delta
+	rope_pull = Vector2.ZERO
 
 	move_and_slide()

@@ -1,34 +1,17 @@
 extends MultiplayerSpawner
-#@onready var spawn_point: Node3D = $"../spawnPoint"
-@onready var players_connected: Control = $"../playersConnected"
+
 @export var networkPlayer: PackedScene
-const MISSILE = preload("uid://dao4ok5uv6imf")
-const PARRY = preload("uid://cd7e28n831lit")
 
 func _ready() -> void:
-	multiplayer.peer_connected.connect(spawnPlayer)
-	spawn_function = Callable(self, "spawnPlayerCar")
+	multiplayer.peer_connected.connect(_spawn_player)
+	spawn_function = Callable(self, "_create_player")
 
-func spawnPlayer(id: int):
-	if !multiplayer.is_server(): return
-	
-	var player: Node = networkPlayer.instantiate()
-	spawn({id = id, modelSelected = randi() % player.models.size()})
-	player.queue_free()
-	
+func _spawn_player(id: int) -> void:
+	if not multiplayer.is_server(): return
+	spawn({id = id})
 	Global.notify.emit("Peer id " + str(id) + " spawned")
 
-func spawnAllPeers():
-	if !multiplayer.is_server(): return
-	spawnPlayer(1)
-	
-	for p in multiplayer.get_peers():
-		spawnPlayer(p)
-
-func spawnPlayerCar(data:Variant):
+func _create_player(data: Variant) -> Node:
 	var player: Node = networkPlayer.instantiate()
 	player.name = str(data["id"])
-	player.modelSelected = data["modelSelected"]
 	return player
-	
-	

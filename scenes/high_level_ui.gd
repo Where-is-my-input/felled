@@ -1,15 +1,12 @@
 extends Control
 
-@export var player_scene:PackedScene
+@export var player_scene: PackedScene
+
 @onready var multiplayer_spawner: MultiplayerSpawner = $"../MultiplayerSpawner"
+@onready var rope_manager: Node = $"../RopeManager"
 @onready var btn_client: Button = $VBoxContainer/btnClient
 @onready var ip: LineEdit = $VBoxContainer/ip
 @onready var port: LineEdit = $VBoxContainer/port
-@onready var players: Node = $"../players"
-@onready var players_connected: Control = $"../playersConnected"
-@onready var track_spawner: MultiplayerSpawner = $"../trackSpawner"
-@onready var splash_art: Control = $"../splashArt"
-@onready var bgm: AudioStreamPlayer2D = $"../BGM"
 
 func _ready() -> void:
 	btn_client.grab_focus()
@@ -19,30 +16,23 @@ func _ready() -> void:
 	multiplayer_spawner.add_spawnable_scene(player_scene.resource_path)
 
 func _on_btn_client_pressed() -> void:
-	track_spawner.unloadTrack()
-	splash_art.queue_free()
 	HighLevelNetworkHandler.startClient(port.text, ip.text)
-	bgm.queue_free()
 
 func _on_btn_server_pressed() -> void:
-	bgm.queue_free()
-	track_spawner.unloadTrack()
 	Global.notify.emit("Starting server...")
 	HighLevelNetworkHandler.startServer(port.text)
-	splash_art.queue_free()
 
-	if multiplayer.is_server():
-		Global.notify.emit("Server started, spawning player...")
-		var player = player_scene.instantiate()
-		player.name = "1"  # Server has peer ID 1
-		players_connected.addPlayer(Global.username, 1)
-		if player.global_position is Vector2:
-			player.global_position = Vector2(455, 79)
-		players.add_child(player)
-		Global.notify.emit("Server player spawned with name: " + player.name)
-		set_buttons_visibility(false)
-	else:
-		push_error("Failed to start server or not server")
+	if not multiplayer.is_server():
+		push_error("Failed to start server")
+		return
+
+	Global.notify.emit("Server started, spawning player...")
+	var player: Node = player_scene.instantiate()
+	player.name = "1"  # Server has peer ID 1
+	get_parent().add_child(player)
+	rope_manager.register_initial_player(1)
+	Global.notify.emit("Server player spawned with name: " + player.name)
+	set_buttons_visibility(false)
 
 func _on_connected_to_server() -> void:
 	set_buttons_visibility(false)
