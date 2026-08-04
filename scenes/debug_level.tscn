@@ -8,6 +8,8 @@
 [ext_resource type="Script" uid="uid://bwrsht1ccdb37" path="res://scenes/dynamic_camera.gd" id="6_dyncam"]
 [ext_resource type="PackedScene" path="res://scenes/checkpoint.tscn" id="7_ckpt"]
 [ext_resource type="PackedScene" path="res://scenes/trampoline.tscn" id="8_d1lkt"]
+[ext_resource type="PackedScene" path="res://scenes/door.tscn" id="9_xsg4u"]
+[ext_resource type="PackedScene" path="res://scenes/button.tscn" id="10_jomtx"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sugp2"]
 texture = ExtResource("2_0wfyh")
@@ -136,3 +138,10 @@ script = ExtResource("6_dyncam")
 
 [node name="Trampoline" parent="." unique_id=2075983115 instance=ExtResource("8_d1lkt")]
 position = Vector2(742, 535)
+
+[node name="Door" parent="." unique_id=1990219847 instance=ExtResource("9_xsg4u")]
+position = Vector2(229, 514)
+
+[node name="Button" parent="." unique_id=702150279 instance=ExtResource("10_jomtx")]
+position = Vector2(369, 536)
+doors = Array[NodePath]([NodePath("../Door")])
