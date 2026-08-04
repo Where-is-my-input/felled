@@ -40,7 +40,8 @@ var is_pulling_next: bool = false
 func _ready() -> void:
 	print("Multiplayer authority will be set to: ", name.to_int())
 	set_multiplayer_authority(name.to_int())
-	
+	add_to_group("players")  # so the shared dynamic camera (dynamic_camera.gd) can find every player
+
 	# setting this here because only the owner has authority to set it
 	position = Vector2(455, 79)
 

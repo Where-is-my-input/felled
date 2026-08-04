@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://dvt8do8wyrjx4" path="res://scenes/high_level_ui.gd" id="3_sugp2"]
 [ext_resource type="Script" uid="uid://bj4m1ogeondfs" path="res://scenes/multiplayer_spawner.gd" id="4_jyhfs"]
 [ext_resource type="Script" uid="uid://yoqqrvbvida0" path="res://scenes/rope_manager.gd" id="5_ropemgr"]
+[ext_resource type="Script" uid="uid://bwrsht1ccdb37" path="res://scenes/dynamic_camera.gd" id="6_dyncam"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sugp2"]
 texture = ExtResource("2_0wfyh")
@@ -235,3 +236,7 @@ networkPlayer = ExtResource("1_o5qli")
 
 [node name="RopeManager" type="Node" parent="." unique_id=373589017]
 script = ExtResource("5_ropemgr")
+
+[node name="GameCamera" type="Camera2D" parent="." unique_id=1908219516]
+position = Vector2(579, 328)
+script = ExtResource("6_dyncam")
