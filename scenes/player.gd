@@ -15,6 +15,9 @@ const MIN_JUMP_INDICATOR_LENGTH = 16.0
 const MAX_JUMP_INDICATOR_LENGTH = 48.0
 const DANGLE_STEER_ACCEL = 2400.0
 const DANGLE_STEER_MAX_SPEED = 220.0
+# Used only if the level has no checkpoint in the "checkpoints" group with
+# is_first_checkpoint = true — see _find_spawn_position().
+const DEFAULT_SPAWN_POSITION = Vector2(455, 79)
 
 @onready var jump_indicator: Line2D = $JumpIndicator
 @onready var name_label: Label = $NameLabel
@@ -69,7 +72,16 @@ func _ready() -> void:
 		display_name = Global.username
 
 	# setting this here because only the owner has authority to set it
-	position = Vector2(455, 79)
+	position = _find_spawn_position()
+
+# Looks for a level checkpoint marked as the first one and spawns there
+# instead; falls back to the hardcoded default if the level has none placed
+# yet (e.g. debug_level.tscn before any checkpoint is authored in it).
+func _find_spawn_position() -> Vector2:
+	for checkpoint in get_tree().get_nodes_in_group("checkpoints"):
+		if checkpoint.is_first_checkpoint:
+			return checkpoint.global_position
+	return DEFAULT_SPAWN_POSITION
 
 # Ungated by multiplayer authority (unlike _physics_process) so the label
 # stays in sync with display_name on every peer, including remote players
