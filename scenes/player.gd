@@ -83,6 +83,19 @@ func _find_spawn_position() -> Vector2:
 			return checkpoint.global_position
 	return DEFAULT_SPAWN_POSITION
 
+# Called by external mechanics (currently just trampoline.gd) that want to
+# launch the player with a specific velocity the same way a self-initiated
+# jump works: cancel any in-progress charge, and set is_jumping so the
+# resulting trajectory is locked (can't be immediately steered away) just
+# like an aimed jump's arc already is.
+func apply_external_launch(new_velocity: Vector2) -> void:
+	charging_jump = false
+	jump_charge_time = 0.0
+	jump_direction = 0.0
+	angle_step_timer = 0.0
+	is_jumping = true
+	velocity = new_velocity
+
 # Ungated by multiplayer authority (unlike _physics_process) so the label
 # stays in sync with display_name on every peer, including remote players
 # whose name only ever arrives via replication.

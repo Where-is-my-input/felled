@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/trampoline.gd" id="1_tramp"]
+[ext_resource type="Texture2D" uid="uid://qp7o51s5ti1c" path="res://icon.svg" id="2_icon"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tramp"]
+size = Vector2(32, 16)
+
+[node name="Trampoline" type="Area2D"]
+script = ExtResource("1_tramp")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.2, 0.1)
+texture = ExtResource("2_icon")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_tramp")

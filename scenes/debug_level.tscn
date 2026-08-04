@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://yoqqrvbvida0" path="res://scenes/rope_manager.gd" id="5_ropemgr"]
 [ext_resource type="Script" uid="uid://bwrsht1ccdb37" path="res://scenes/dynamic_camera.gd" id="6_dyncam"]
 [ext_resource type="PackedScene" path="res://scenes/checkpoint.tscn" id="7_ckpt"]
+[ext_resource type="PackedScene" path="res://scenes/trampoline.tscn" id="8_d1lkt"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sugp2"]
 texture = ExtResource("2_0wfyh")
@@ -132,3 +133,6 @@ script = ExtResource("5_ropemgr")
 
 [node name="GameCamera" type="Camera2D" parent="." unique_id=1174489569]
 script = ExtResource("6_dyncam")
+
+[node name="Trampoline" parent="." unique_id=2075983115 instance=ExtResource("8_d1lkt")]
+position = Vector2(742, 535)
