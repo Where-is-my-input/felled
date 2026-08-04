@@ -20,6 +20,7 @@ const WAIT_FRAMES_TIMEOUT = 300  # ~5s at 60fps before giving up on a missing pl
 @export var pull_rest_length: float = 24.0
 @export var pull_stiffness_multiplier: float = 3.0
 @export var puller_drag_multiplier: float = 1.8
+@export var pull_kick_speed: float = 150.0
 
 # Keep in sync with the @export list above — this is what gets sent to
 # newly-connected peers (see _on_peer_connected) and iterated by
@@ -28,7 +29,7 @@ const ROPE_PROPERTY_NAMES: Array[String] = [
 	"stiffness", "damping", "rest_length", "max_pull_accel", "min_length",
 	"max_length_multiplier", "max_length_overstretch_fraction",
 	"overstretch_speed_threshold", "pull_rest_length",
-	"pull_stiffness_multiplier", "puller_drag_multiplier",
+	"pull_stiffness_multiplier", "puller_drag_multiplier", "pull_kick_speed",
 ]
 
 @onready var scene_root: Node = get_parent()

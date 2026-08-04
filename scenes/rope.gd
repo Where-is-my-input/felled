@@ -46,8 +46,19 @@ extends Node2D
 @export var pull_stiffness_multiplier: float = 3.0
 @export var puller_drag_multiplier: float = 1.8
 
+# One-time instant speed boost (toward the partner) applied to whoever just
+# pressed their pull key, on top of the continuous reel-in above — a punchy
+# "tug" the instant you start pulling instead of only a slow stiffness ramp.
+# Only fires on the rising edge (not held every frame), via rope_kick, which
+# unlike rope_pull is added straight to velocity with no *delta — see
+# player.gd.
+@export var pull_kick_speed: float = 150.0
+
 var player_a: CharacterBody2D
 var player_b: CharacterBody2D
+
+var _was_pulling_a: bool = false
+var _was_pulling_b: bool = false
 
 @onready var line: Line2D = $Line
 
@@ -74,6 +85,15 @@ func _physics_process(_delta: float) -> void:
 	var pulling_a: bool = player_a.is_pulling_next
 	var pulling_b: bool = player_b.is_pulling_previous
 	var is_being_pulled: bool = pulling_a or pulling_b
+
+	# Rising edge only — the continuous reel-in effect above already handles
+	# the held-down case, this is purely the instant of first pressing.
+	if pulling_a and not _was_pulling_a:
+		_apply_kick(player_a, player_b)
+	if pulling_b and not _was_pulling_b:
+		_apply_kick(player_b, player_a)
+	_was_pulling_a = pulling_a
+	_was_pulling_b = pulling_b
 
 	var effective_rest_length: float = max(min_length, pull_rest_length if is_being_pulled else rest_length)
 	var effective_stiffness: float = stiffness
@@ -123,3 +143,10 @@ func _physics_process(_delta: float) -> void:
 		player_b.rope_pull -= pull * (puller_drag_multiplier if pulling_b else 1.0)
 
 	line.points = PackedVector2Array([to_local(player_a.global_position), to_local(player_b.global_position)])
+
+func _apply_kick(puller: CharacterBody2D, anchor: CharacterBody2D) -> void:
+	var offset: Vector2 = anchor.global_position - puller.global_position
+	var distance: float = offset.length()
+	if distance < 0.01:
+		return
+	puller.rope_kick += (offset / distance) * pull_kick_speed

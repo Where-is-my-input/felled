@@ -37,6 +37,12 @@ var is_jumping: bool = false
 # then folded into velocity and reset every physics frame.
 var rope_pull: Vector2 = Vector2.ZERO
 
+# Like rope_pull, but added directly to velocity with no *delta — a one-time
+# instant kick (see rope.gd) rather than a continuous acceleration, applied
+# the instant a pull key is first pressed for a punchy "tug" instead of a
+# slow ramp-up.
+var rope_kick: Vector2 = Vector2.ZERO
+
 # Set by RopeManager when a rope attaches to this player (see rope_manager.gd).
 # "previous"/"next" refer to connection order — rope_to_previous is the rope
 # where this player is the later-joined end, rope_to_next the earlier end.
@@ -153,8 +159,9 @@ func _physics_process(delta: float) -> void:
 	# Charging or mid-air, the rope should be easier to fight against so a jump
 	# can actually pull you away from your rope-mate instead of being reeled in.
 	var rope_pull_scale: float = ROPE_PULL_SCALE_WHILE_JUMPING if (charging_jump or not is_on_floor()) else 1.0
-	velocity += rope_pull * rope_pull_scale * delta
+	velocity += (rope_pull * delta + rope_kick) * rope_pull_scale
 	rope_pull = Vector2.ZERO
+	rope_kick = Vector2.ZERO
 
 	if charging_jump and is_on_floor():
 		# Bracing for a jump plants you — the rope can still slide you side to

@@ -27,6 +27,7 @@ const FIELDS: Array[Dictionary] = [
 	{"name": "pull_rest_length", "label": "Pull (Reel-In) Rest Length", "min": 1.0, "max": 150.0, "step": 1.0, "default": 24.0},
 	{"name": "pull_stiffness_multiplier", "label": "Pull Stiffness Multiplier", "min": 1.0, "max": 10.0, "step": 0.1, "default": 3.0},
 	{"name": "puller_drag_multiplier", "label": "Puller Drag Multiplier", "min": 1.0, "max": 5.0, "step": 0.1, "default": 1.8},
+	{"name": "pull_kick_speed", "label": "Pull Kick Speed", "min": 0.0, "max": 1000.0, "step": 10.0, "default": 150.0},
 ]
 
 @onready var fields_container: VBoxContainer = $ScrollContainer/FieldsContainer
