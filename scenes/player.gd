@@ -113,6 +113,12 @@ func _physics_process(delta: float) -> void:
 	velocity += rope_pull * rope_pull_scale * delta
 	rope_pull = Vector2.ZERO
 
+	if charging_jump and is_on_floor():
+		# Bracing for a jump plants you — the rope can still slide you side to
+		# side, but it can never yank you up off the ground while you're
+		# anchored like this. Your rope-mate gets flung around instead.
+		velocity.y = max(velocity.y, 0.0)
+
 	_update_jump_indicator()
 
 	move_and_slide()
