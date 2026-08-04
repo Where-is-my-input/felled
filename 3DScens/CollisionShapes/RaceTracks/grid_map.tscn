@@ -1,9 +1,0 @@
-[gd_scene format=3 uid="uid://bggsh87im0r2x"]
-
-[ext_resource type="MeshLibrary" uid="uid://ddb4lrppcirrb" path="res://3DScens/CollisionShapes/RaceTracks/MeshLybrary/RaceTracksMeshInstance.meshlib" id="1_wpqxo"]
-
-[node name="GridMap" type="GridMap" unique_id=1964182731]
-transform = Transform3D(15, 0, 0, 0, 15, 0, 0, 0, 15, 0, 0, 0)
-mesh_library = ExtResource("1_wpqxo")
-cell_size = Vector3(1, 1, 1)
-metadata/_editor_floor_ = Vector3(0, 0, 0)

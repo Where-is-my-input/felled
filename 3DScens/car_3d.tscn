@@ -1,7 +1,0 @@
-[gd_scene format=3 uid="uid://d4g2jappdoqof"]
-
-[ext_resource type="PackedScene" uid="uid://dchk87sjuptte" path="res://Assets/3D/Models/GLB format/ambulance.glb" id="1_xr5ie"]
-
-[node name="car3D" type="VehicleBody3D" unique_id=757510925]
-
-[node name="ambulance" parent="." unique_id=174724231 instance=ExtResource("1_xr5ie")]

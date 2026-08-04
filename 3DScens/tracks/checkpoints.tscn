@@ -1,7 +1,0 @@
-[gd_scene format=3 uid="uid://bannoqdbj4xpf"]
-
-[ext_resource type="Script" uid="uid://bmxc4cwxabjn0" path="res://3DScens/tracks/checkpoints.gd" id="1_awqj3"]
-
-[node name="checkpoints" type="Node3D" unique_id=1218153255]
-script = ExtResource("1_awqj3")
-totalLaps = 3

@@ -14,9 +14,9 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="multiplayer"
+config/name="Felled"
 run/main_scene="uid://dixwv81pcn6g2"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
 [audio]
@@ -38,10 +38,13 @@ window/stretch/mode="canvas_items"
 [file_customization]
 
 folder_colors={
-"res://3DScens/": "red",
 "res://Assets/": "green",
 "res://scenes/": "blue"
 }
+
+[filesystem]
+
+import/blender/enabled=false
 
 [input]
 

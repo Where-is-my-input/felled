@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://0xxam4icfx13"]
-
-[ext_resource type="MeshLibrary" uid="uid://ewejgeedhixi" path="res://3DScens/gridMaps/raceTracksReexportMeshLib.meshlib" id="1_wi1f5"]
-
-[node name="kenneyRaceTracksGridMap" type="GridMap" unique_id=422626505]
-mesh_library = ExtResource("1_wi1f5")

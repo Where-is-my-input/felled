@@ -1,8 +1,0 @@
-[gd_scene format=3 uid="uid://bepfcavb1e7jy"]
-
-[ext_resource type="PackedScene" uid="uid://d4m6mag25mlme" path="res://3DScens/spells/blast.tscn" id="1_mwywp"]
-
-[node name="bigBlast" unique_id=122913138 instance=ExtResource("1_mwywp")]
-blastStrength = 5.0
-scaleIncreaseTo = 25.0
-angularStrength = 250.0

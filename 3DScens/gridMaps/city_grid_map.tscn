@@ -1,7 +1,0 @@
-[gd_scene format=3 uid="uid://lmdk5wsigmps"]
-
-[ext_resource type="MeshLibrary" uid="uid://cmj1a6gkr4j2j" path="res://3DScens/gridMaps/cities.meshlib" id="1_kw0q2"]
-
-[node name="buildings" type="GridMap" unique_id=709694751]
-mesh_library = ExtResource("1_kw0q2")
-cell_scale = 15.0
