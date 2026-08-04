@@ -30,7 +30,7 @@ anchor_bottom = 0.5
 offset_left = 12.0
 offset_top = 19.0
 offset_right = 212.0
-offset_bottom = 239.0
+offset_bottom = 295.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
@@ -55,6 +55,11 @@ text = "⚙"
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 text = "Join Lobby"
+
+[node name="btnProfile" type="Button" parent="MenuCenter/MenuPanel"]
+custom_minimum_size = Vector2(200, 44)
+layout_mode = 2
+text = "Profile"
 
 [node name="btnSettings" type="Button" parent="MenuCenter/MenuPanel"]
 custom_minimum_size = Vector2(200, 44)
@@ -100,6 +105,39 @@ layout_mode = 2
 text = "Connect"
 
 [node name="btnJoinBack" type="Button" parent="MenuCenter/JoinPanel"]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+text = "Back"
+
+[node name="ProfilePanel" type="VBoxContainer" parent="MenuCenter"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -60.0
+offset_right = 100.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="lblNicknameTitle" type="Label" parent="MenuCenter/ProfilePanel"]
+layout_mode = 2
+text = "Nickname (shown above your head online)"
+autowrap_mode = 3
+horizontal_alignment = 1
+
+[node name="nickname" type="LineEdit" parent="MenuCenter/ProfilePanel"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+max_length = 20
+placeholder_text = "Enter nickname"
+
+[node name="btnProfileBack" type="Button" parent="MenuCenter/ProfilePanel"]
 custom_minimum_size = Vector2(200, 36)
 layout_mode = 2
 text = "Back"

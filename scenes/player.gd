@@ -17,6 +17,7 @@ const DANGLE_STEER_ACCEL = 2400.0
 const DANGLE_STEER_MAX_SPEED = 220.0
 
 @onready var jump_indicator: Line2D = $JumpIndicator
+@onready var name_label: Label = $NameLabel
 
 var charging_jump: bool = false
 var jump_charge_time: float = 0.0
@@ -47,13 +48,36 @@ var rope_to_next: Node = null
 var is_pulling_previous: bool = false
 var is_pulling_next: bool = false
 
+# Replicated (see player.tscn's MultiplayerSynchronizer) so every peer sees the
+# nickname above this player's head, not just the owning client. Only the
+# owning peer ever writes this (from Global.username, set via the profile menu
+# in main_menu.tscn) — everyone else just displays whatever comes in over sync.
+var display_name: String = ""
+
 func _ready() -> void:
 	print("Multiplayer authority will be set to: ", name.to_int())
 	set_multiplayer_authority(name.to_int())
 	add_to_group("players")  # so the shared dynamic camera (dynamic_camera.gd) can find every player
 
+	if is_multiplayer_authority():
+		display_name = Global.username
+
 	# setting this here because only the owner has authority to set it
 	position = Vector2(455, 79)
+
+# Ungated by multiplayer authority (unlike _physics_process) so the label
+# stays in sync with display_name on every peer, including remote players
+# whose name only ever arrives via replication.
+func _process(_delta: float) -> void:
+	name_label.text = display_name
+
+	# Name tags live in world space (children of this Node2D), so the shared
+	# dynamic camera's zoom would otherwise magnify/shrink them along with
+	# everything else. Counter-scale by 1/zoom each frame so the tag stays a
+	# constant size on screen no matter how far GameCamera has zoomed.
+	var camera: Camera2D = get_viewport().get_camera_2d()
+	if camera != null and camera.zoom.x > 0.0 and camera.zoom.y > 0.0:
+		name_label.scale = Vector2.ONE / camera.zoom
 
 
 func _physics_process(delta: float) -> void:
