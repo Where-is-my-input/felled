@@ -15,6 +15,29 @@ extends Node2D
 # it just goes fully slack once they're within it.
 @export var min_length: float = 16.0
 
+# Hard ceiling: expressed as a multiple of rest_length (3x, for now) — NOT
+# min_length, since min_length (16) is a proximity floor far smaller than
+# the rope's normal idle length (rest_length, 64 by default); a 3x-min_length
+# ceiling (48) was actually *tighter* than the default slack, so the rope
+# could never relax out to its normal length and looked permanently reeled
+# in. Basing it on rest_length instead keeps it a real ceiling ABOVE the
+# rope's normal operating range. This is enforced as an actual positional
+# clamp (see _physics_process) rather than just a stronger spring — a spring
+# alone can still be out-stretched by enough thrust, which is exactly what
+# happened before that was added. Each peer only ever corrects the end(s) it's
+# actually authoritative for; the other end (if owned by a different client)
+# gets caught up via that client's own copy of this same rope doing the same
+# correction, then replicated position sync.
+@export var max_length_multiplier: float = 3.0
+
+# Lets the cap itself stretch a bit under a fast enough impact instead of
+# always clamping at exactly max_length — full give (10% extra) only kicks
+# in once the two are separating at overstretch_speed_threshold or faster;
+# below that it scales down linearly to zero give, so a slow drift into the
+# cap still stops right at max_length.
+@export var max_length_overstretch_fraction: float = 0.1
+@export var overstretch_speed_threshold: float = 400.0
+
 # Applied while either end is holding their pull key (Q for the earlier-joined
 # end, E for the later-joined end — see player.gd's rope_to_previous/next).
 @export var pull_rest_length: float = 24.0
@@ -61,6 +84,24 @@ func _physics_process(_delta: float) -> void:
 
 	var offset: Vector2 = player_b.global_position - player_a.global_position
 	var distance: float = offset.length()
+	var max_length: float = rest_length * max_length_multiplier
+	if distance > max_length:
+		var direction_to_b: Vector2 = offset / distance
+		var separating_speed_at_cap: float = (player_b.velocity - player_a.velocity).dot(direction_to_b)
+		var give_fraction: float = clamp(separating_speed_at_cap / overstretch_speed_threshold, 0.0, 1.0)
+		var effective_max_length: float = max_length * (1.0 + max_length_overstretch_fraction * give_fraction)
+		if distance > effective_max_length:
+			var excess: float = distance - effective_max_length
+			var half_correction: Vector2 = direction_to_b * (excess * 0.5)
+			if player_a.is_multiplayer_authority():
+				player_a.global_position += half_correction
+			if player_b.is_multiplayer_authority():
+				player_b.global_position -= half_correction
+			# Recompute so the spring math and line below use the corrected
+			# (capped) distance instead of the stale, over-max one.
+			offset = player_b.global_position - player_a.global_position
+			distance = offset.length()
+
 	if distance > effective_rest_length:
 		var direction: Vector2 = offset / distance
 		var stretch: float = distance - effective_rest_length
