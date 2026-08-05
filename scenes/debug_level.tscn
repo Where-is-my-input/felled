@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" path="res://scenes/conveyor_belt.tscn" id="11_jomtx"]
 [ext_resource type="Script" uid="uid://ty12uplmjs6" path="res://scenes/respawn_manager.gd" id="12_respawnmgr"]
 [ext_resource type="PackedScene" path="res://scenes/spike.tscn" id="13_spike"]
+[ext_resource type="PackedScene" path="res://scenes/laser.tscn" id="14_laser"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sugp2"]
 texture = ExtResource("2_0wfyh")
@@ -161,5 +162,9 @@ position = Vector2(976, 544)
 [node name="Spike" parent="." unique_id=7805301 instance=ExtResource("13_spike")]
 position = Vector2(1048, 540)
 
+[node name="Laser" parent="." unique_id=514716190 instance=ExtResource("14_laser")]
+position = Vector2(648, 336)
+direction = 1
+
 [node name="Spike2" parent="." unique_id=618971467 instance=ExtResource("13_spike")]
-position = Vector2(800, 536)
+position = Vector2(816, 544)
