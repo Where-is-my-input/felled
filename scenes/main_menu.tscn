@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/high_level_ui.gd" id="1_hlui"]
 [ext_resource type="Script" path="res://scenes/rope_settings_panel.gd" id="2_ropeset"]
+[ext_resource type="Texture2D" uid="uid://qp7o51s5ti1c" path="res://icon.svg" id="3_icon"]
 
 [node name="highLevelUI" type="Control"]
 layout_mode = 3
@@ -11,6 +12,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_hlui")
+
+[node name="colorPreview" type="TextureRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -224.0
+offset_top = -96.0
+offset_right = -32.0
+offset_bottom = 96.0
+grow_horizontal = 0
+grow_vertical = 2
+texture = ExtResource("3_icon")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="MenuCenter" type="Control" parent="."]
 layout_mode = 1
@@ -118,9 +137,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -100.0
-offset_top = -60.0
+offset_top = -100.0
 offset_right = 100.0
-offset_bottom = 60.0
+offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
@@ -136,6 +155,16 @@ custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 max_length = 20
 placeholder_text = "Enter nickname"
+
+[node name="lblColorTitle" type="Label" parent="MenuCenter/ProfilePanel"]
+layout_mode = 2
+text = "Sprite color"
+horizontal_alignment = 1
+
+[node name="colorPicker" type="ColorPickerButton" parent="MenuCenter/ProfilePanel"]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+edit_alpha = false
 
 [node name="btnProfileBack" type="Button" parent="MenuCenter/ProfilePanel"]
 custom_minimum_size = Vector2(200, 36)

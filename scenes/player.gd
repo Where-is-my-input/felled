@@ -36,6 +36,7 @@ const DEFAULT_SPAWN_POSITION = Vector2(455, 79)
 
 @onready var jump_indicator: Line2D = $JumpIndicator
 @onready var name_label: Label = $NameLabel
+@onready var sprite: Sprite2D = $Sprite2D
 
 var charging_jump: bool = false
 var jump_charge_time: float = 0.0
@@ -78,6 +79,13 @@ var is_pulling_next: bool = false
 # in main_menu.tscn) — everyone else just displays whatever comes in over sync.
 var display_name: String = ""
 
+# Replicated (see player.tscn's MultiplayerSynchronizer) so every peer sees
+# the same sprite color for this player, not just the owning client. Only the
+# owning peer ever writes this (from Global.player_color, set via the profile
+# menu's color picker in main_menu.tscn) — everyone else just displays
+# whatever comes in over sync.
+var sprite_color: Color = Color.WHITE
+
 func _ready() -> void:
 	print("Multiplayer authority will be set to: ", name.to_int())
 	set_multiplayer_authority(name.to_int())
@@ -85,6 +93,7 @@ func _ready() -> void:
 
 	if is_multiplayer_authority():
 		display_name = Global.username
+		sprite_color = Global.player_color
 
 	# setting this here because only the owner has authority to set it
 	position = _find_spawn_position()
@@ -116,6 +125,7 @@ func apply_external_launch(new_velocity: Vector2) -> void:
 # whose name only ever arrives via replication.
 func _process(_delta: float) -> void:
 	name_label.text = display_name
+	sprite.modulate = sprite_color
 
 	# Name tags live in world space (children of this Node2D), so the shared
 	# dynamic camera's zoom would otherwise magnify/shrink them along with

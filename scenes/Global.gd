@@ -47,6 +47,7 @@ enum RearCameraType{
 var currentRearCamera:RearCameraType = RearCameraType.SMALL
 var currentCamera:CameraType = CameraType.EXTERIOR
 var username:String = "Random Username"
+var player_color:Color = Color.WHITE
 
 const PROFILE_SAVE_PATH := "user://profile.cfg"
 
@@ -54,11 +55,20 @@ func _ready() -> void:
 	var config := ConfigFile.new()
 	if config.load(PROFILE_SAVE_PATH) == OK:
 		username = config.get_value("profile", "username", username)
+		player_color = config.get_value("profile", "player_color", player_color)
 
 func save_username(new_username: String) -> void:
 	username = new_username
 	var config := ConfigFile.new()
+	config.load(PROFILE_SAVE_PATH)
 	config.set_value("profile", "username", username)
+	config.save(PROFILE_SAVE_PATH)
+
+func save_player_color(new_color: Color) -> void:
+	player_color = new_color
+	var config := ConfigFile.new()
+	config.load(PROFILE_SAVE_PATH)
+	config.set_value("profile", "player_color", player_color)
 	config.save(PROFILE_SAVE_PATH)
 
 func _input(event: InputEvent) -> void:
