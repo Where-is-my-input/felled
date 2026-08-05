@@ -37,6 +37,7 @@ const ROPE_PROPERTY_NAMES: Array[String] = [
 var connection_order: Array[int] = []
 
 func _ready() -> void:
+	add_to_group("rope_manager")  # so a dying player (see player.gd's die()) can find this without a NodePath
 	if multiplayer.is_server():
 		multiplayer.peer_connected.connect(_on_peer_connected)
 
@@ -116,3 +117,81 @@ func _wait_for_player(id: int) -> Node:
 		player = scene_root.get_node_or_null(str(id))
 		attempts += 1
 	return player
+
+# Called locally by whichever peer's own player just died (see player.gd's
+# die()) — any_peer since it's just a request, but only the server actually
+# acts on it: connection_order (and therefore the chain's shape) only ever
+# lives on the server, same as the initial join-order chain built in
+# _on_peer_connected above. Needs call_local: a peer's rpc_id(1, ...) to
+# itself does NOT run locally unless call_local is set (Godot doesn't loop
+# a "network" packet back to its own sender) — without it, the host's own
+# player calling this never did anything. For a non-host caller, call_local
+# means this also runs harmlessly on the caller's own machine, where the
+# is_server() guard below immediately no-ops it — the real, authoritative
+# run still only ever happens once, on the server.
+@rpc("any_peer", "call_local", "reliable")
+func request_death(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var index: int = connection_order.find(peer_id)
+	if index == -1:
+		return  # unrecognized id, or already handled by an earlier call — ignore
+
+	var previous_id: int = connection_order[index - 1] if index > 0 else -1
+	var next_id: int = connection_order[index + 1] if index < connection_order.size() - 1 else -1
+	connection_order.remove_at(index)
+	# Whoever's currently last becomes the dying player's new rope-mate; the
+	# dying player is then appended back on, becoming the new last link.
+	var new_previous_id: int = connection_order[-1] if connection_order.size() > 0 else -1
+	connection_order.append(peer_id)
+
+	_apply_death_relink.rpc(peer_id, previous_id, next_id, new_previous_id)
+
+# Broadcast by the server (see request_death above) once it's decided the new
+# chain shape, so every peer applies the identical relink instead of each
+# guessing independently. Removes the dying player's old one or two rope
+# connections, bridges its old neighbors directly together so the rest of the
+# chain stays continuous without it, then respawns the dying player close to
+# the (pre-death) last player in the chain and attaches a fresh rope to them.
+@rpc("authority", "call_local", "reliable")
+func _apply_death_relink(dying_id: int, previous_id: int, next_id: int, new_previous_id: int) -> void:
+	if previous_id != -1:
+		_remove_rope(previous_id, dying_id)
+	if next_id != -1:
+		_remove_rope(dying_id, next_id)
+	if previous_id != -1 and next_id != -1:
+		await _create_rope(previous_id, next_id)
+
+	var dying_player: Node = await _wait_for_player(dying_id)
+	if dying_player == null:
+		return
+
+	if dying_player.is_multiplayer_authority():
+		var tail_player: Node = scene_root.get_node_or_null(str(new_previous_id)) if new_previous_id != -1 else null
+		# Spawn just short of rest_length away so the fresh rope below starts
+		# out slack instead of instantly snapping/yanking the respawned player.
+		var target_position: Vector2 = tail_player.global_position + Vector2(-rest_length * 0.5, 0.0) if tail_player != null else dying_player.find_spawn_position()
+		dying_player.respawn_to(target_position)
+
+	if new_previous_id != -1:
+		await _create_rope(new_previous_id, dying_id)
+
+# Undoes exactly what _create_rope did for this pair: clears both players'
+# rope_to_previous/rope_to_next reference to it (see the same convention
+# noted in _create_rope) and frees the rope node itself.
+func _remove_rope(id_a: int, id_b: int) -> void:
+	var rope: Node = scene_root.get_node_or_null("rope_%d_%d" % [id_a, id_b])
+	if rope == null:
+		return
+	if is_instance_valid(rope.player_a):
+		rope.player_a.rope_to_next = null
+	if is_instance_valid(rope.player_b):
+		rope.player_b.rope_to_previous = null
+	# remove_child (not just queue_free, which leaves it in the tree — and
+	# still passing has_node()'s check in _create_rope — until end of frame)
+	# so a same-frame _create_rope() for this exact id_a/id_b pair, like the
+	# reattach in _apply_death_relink when the dying player was already last
+	# in the chain, doesn't mistake the about-to-be-freed old rope for a
+	# still-live one and skip creating its replacement.
+	scene_root.remove_child(rope)
+	rope.queue_free()

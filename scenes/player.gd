@@ -138,12 +138,11 @@ func apply_external_launch(new_velocity: Vector2) -> void:
 	is_jumping = true
 	velocity = new_velocity
 
-# Called by RespawnManager, only for the player each peer actually has
-# authority over, once a strict majority of players in the "players" group
-# have an active respawn vote. Snaps back to target_position (the last
-# checkpoint reached, or find_spawn_position() if none has been yet) the same
-# way an initial spawn works, and clears this player's own vote so the tally
-# doesn't stay past-threshold and immediately trigger again next frame.
+# Called by RespawnManager (vote-triggered respawn) and by RopeManager (see
+# die() below), only ever for the player each peer actually has authority
+# over, to snap back to target_position the same way an initial spawn works —
+# clearing any in-progress jump charge/vote so neither carries over into the
+# new spot.
 func respawn_to(target_position: Vector2) -> void:
 	position = target_position
 	velocity = Vector2.ZERO
@@ -154,6 +153,20 @@ func respawn_to(target_position: Vector2) -> void:
 	is_jumping = false
 	has_voted_respawn = false
 	_vote_respawn_timer = 0.0
+
+# Not wired to any actual hazard/fall-off-level trigger yet — this just
+# prepares the respawn side of dying: asks RopeManager (server-authoritative,
+# see request_death there) to cut this player out of the chain wherever it
+# currently sits, bridge its old neighbors directly together so the chain
+# stays continuous without it, and reattach it to whoever ends up last in
+# line, respawning it close by. Only meaningful called on the player this
+# peer actually has authority over.
+func die() -> void:
+	if not is_multiplayer_authority():
+		return
+	var rope_manager: Node = get_tree().get_first_node_in_group("rope_manager")
+	if rope_manager != null:
+		rope_manager.request_death.rpc_id(1, name.to_int())
 
 # Ungated by multiplayer authority (unlike _physics_process) so the label
 # stays in sync with display_name on every peer, including remote players

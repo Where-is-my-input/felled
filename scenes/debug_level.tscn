@@ -11,7 +11,8 @@
 [ext_resource type="PackedScene" path="res://scenes/door.tscn" id="9_xsg4u"]
 [ext_resource type="PackedScene" path="res://scenes/button.tscn" id="10_jomtx"]
 [ext_resource type="PackedScene" path="res://scenes/conveyor_belt.tscn" id="11_jomtx"]
-[ext_resource type="Script" path="res://scenes/respawn_manager.gd" id="12_respawnmgr"]
+[ext_resource type="Script" uid="uid://ty12uplmjs6" path="res://scenes/respawn_manager.gd" id="12_respawnmgr"]
+[ext_resource type="PackedScene" path="res://scenes/spike.tscn" id="13_spike"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sugp2"]
 texture = ExtResource("2_0wfyh")
@@ -135,7 +136,7 @@ networkPlayer = ExtResource("1_o5qli")
 [node name="RopeManager" type="Node" parent="." unique_id=1508537221]
 script = ExtResource("5_ropemgr")
 
-[node name="RespawnManager" type="Node" parent="."]
+[node name="RespawnManager" type="Node" parent="." unique_id=1195456111]
 script = ExtResource("12_respawnmgr")
 
 [node name="GameCamera" type="Camera2D" parent="." unique_id=1174489569]
@@ -156,3 +157,9 @@ position = Vector2(904, 544)
 
 [node name="ConveyorBelt2" parent="." unique_id=1974383920 instance=ExtResource("11_jomtx")]
 position = Vector2(976, 544)
+
+[node name="Spike" parent="." unique_id=7805301 instance=ExtResource("13_spike")]
+position = Vector2(1048, 540)
+
+[node name="Spike2" parent="." unique_id=618971467 instance=ExtResource("13_spike")]
+position = Vector2(800, 536)
