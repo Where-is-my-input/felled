@@ -71,6 +71,30 @@ func setup(a: CharacterBody2D, b: CharacterBody2D) -> void:
 	player_a = a
 	player_b = b
 
+# Read by player.gd (_rope_drag_multiplier) to find who's on the other end of
+# this rope from a given player, without it needing to know whether it's
+# player_a or player_b itself.
+func get_partner(player: CharacterBody2D) -> CharacterBody2D:
+	if player == player_a:
+		return player_b
+	if player == player_b:
+		return player_a
+	return null
+
+# Read by player.gd (_rope_drag_multiplier) to gauge how taut the rope
+# currently is: 0 at rest_length or slacker, ramping to 1 at the hard
+# max_length cap (see the overstretch clamp above _physics_process applies).
+func get_stretch_fraction() -> float:
+	if not is_instance_valid(player_a) or not is_instance_valid(player_b):
+		return 0.0
+	var distance: float = player_a.global_position.distance_to(player_b.global_position)
+	if distance <= rest_length:
+		return 0.0
+	var max_length: float = rest_length * max_length_multiplier
+	if max_length <= rest_length:
+		return 1.0
+	return clamp((distance - rest_length) / (max_length - rest_length), 0.0, 1.0)
+
 func _physics_process(_delta: float) -> void:
 	if not is_instance_valid(player_a) or not is_instance_valid(player_b):
 		queue_free()

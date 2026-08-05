@@ -15,6 +15,11 @@ const MIN_JUMP_INDICATOR_LENGTH = 16.0
 const MAX_JUMP_INDICATOR_LENGTH = 48.0
 const DANGLE_STEER_ACCEL = 2400.0
 const DANGLE_STEER_MAX_SPEED = 220.0
+# Walk speed multiplier applied while a taut rope is at its max stretch and
+# the player is walking further away (see _rope_drag_multiplier) — simulates
+# the drag of hauling the rope-mate's weight along. Lerped between 1.0 (slack
+# rope) and this at max stretch, not an instant cutoff.
+const ROPE_DRAG_MIN_MULTIPLIER = 0.5
 # Fraction of horizontal speed kept (reversed, i.e. a small bounce-back)
 # after move_and_slide blocks it against something roughly vertical-faced —
 # a wall or another player hit from the side — instead of losing it all
@@ -184,7 +189,8 @@ func _physics_process(delta: float) -> void:
 		elif horizontal_input != 0.0:
 			# Walking adds on top of the belt instead of being capped by it,
 			# so fighting the belt is possible but riding it is faster.
-			velocity.x = horizontal_input * SPEED + conveyor_push_x
+			var walk_speed: float = SPEED * _rope_drag_multiplier(horizontal_input)
+			velocity.x = horizontal_input * walk_speed + conveyor_push_x
 		else:
 			velocity.x = move_toward(velocity.x, conveyor_push_x, SPEED)
 	elif not is_jumping:
@@ -217,6 +223,26 @@ func _physics_process(delta: float) -> void:
 	var pre_slide_velocity_x: float = velocity.x
 	move_and_slide()
 	_apply_wall_bounce(pre_slide_velocity_x)
+
+# Slows walking down while it's stretching an attached rope taut by walking
+# further away from the other end — NOT while walking toward them (which only
+# slackens the rope) or while the rope is already slack. Mirrors dragging the
+# rope-mate's actual weight: barely noticeable near rest length, strongest
+# once the rope is stretched near its hard max.
+func _rope_drag_multiplier(horizontal_input: float) -> float:
+	var multiplier: float = 1.0
+	for rope in [rope_to_previous, rope_to_next]:
+		if rope == null:
+			continue
+		var partner: CharacterBody2D = rope.get_partner(self)
+		if partner == null:
+			continue
+		var away_from_partner: float = sign(global_position.x - partner.global_position.x)
+		if away_from_partner == 0.0 or sign(horizontal_input) != away_from_partner:
+			continue
+		var stretch_fraction: float = rope.get_stretch_fraction()
+		multiplier = min(multiplier, lerp(1.0, ROPE_DRAG_MIN_MULTIPLIER, stretch_fraction))
+	return multiplier
 
 # Checks whether the floor collision that made is_on_floor() true this frame
 # came from a conveyor_belt.gd — if so, returns the speed it wants to carry
