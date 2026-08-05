@@ -21,6 +21,9 @@ properties/3/replication_mode = 1
 properties/4/path = NodePath(".:sprite_color")
 properties/4/spawn = true
 properties/4/replication_mode = 1
+properties/5/path = NodePath(".:has_voted_respawn")
+properties/5/spawn = true
+properties/5/replication_mode = 1
 
 [node name="player" type="CharacterBody2D"]
 script = ExtResource("1_g2els")
@@ -51,5 +54,19 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VoteCheckmark" type="Label" parent="NameLabel"]
+visible = false
+offset_left = 100.0
+offset_top = 0.0
+offset_right = 120.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(0.2, 1, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "✓"
 horizontal_alignment = 1
 vertical_alignment = 1

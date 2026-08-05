@@ -31,11 +31,16 @@ const WALL_BOUNCE_RETENTION = 0.3
 # corner (see _apply_corner_correction) instead of stopping/bouncing them.
 const CORNER_CORRECTION_MAX_OFFSET = 8.0
 # Used only if the level has no checkpoint in the "checkpoints" group with
-# is_first_checkpoint = true — see _find_spawn_position().
+# is_first_checkpoint = true — see find_spawn_position().
 const DEFAULT_SPAWN_POSITION = Vector2(455, 79)
+# How long a single respawn vote (see the "respawn" input action) stays
+# counted before automatically wearing off if not refreshed — tallied by
+# RespawnManager against every player in the "players" group.
+const VOTE_RESPAWN_DURATION = 8.0
 
 @onready var jump_indicator: Line2D = $JumpIndicator
 @onready var name_label: Label = $NameLabel
+@onready var vote_checkmark: Label = $NameLabel/VoteCheckmark
 @onready var sprite: Sprite2D = $Sprite2D
 
 var charging_jump: bool = false
@@ -86,6 +91,17 @@ var display_name: String = ""
 # whatever comes in over sync.
 var sprite_color: Color = Color.WHITE
 
+# Replicated (see player.tscn's MultiplayerSynchronizer) so every peer sees
+# the same green checkmark next to this player's name while their respawn
+# vote is active, and so RespawnManager can tally votes from every player's
+# copy without needing its own networking. Only the owning peer ever writes
+# this (on the "respawn" input action, decaying after VOTE_RESPAWN_DURATION
+# in _physics_process below) — everyone else just displays/tallies whatever
+# comes in over sync.
+var has_voted_respawn: bool = false
+
+var _vote_respawn_timer: float = 0.0
+
 func _ready() -> void:
 	print("Multiplayer authority will be set to: ", name.to_int())
 	set_multiplayer_authority(name.to_int())
@@ -96,12 +112,14 @@ func _ready() -> void:
 		sprite_color = Global.player_color
 
 	# setting this here because only the owner has authority to set it
-	position = _find_spawn_position()
+	position = find_spawn_position()
 
 # Looks for a level checkpoint marked as the first one and spawns there
 # instead; falls back to the hardcoded default if the level has none placed
-# yet (e.g. debug_level.tscn before any checkpoint is authored in it).
-func _find_spawn_position() -> Vector2:
+# yet (e.g. debug_level.tscn before any checkpoint is authored in it). Public
+# because RespawnManager also calls this as the respawn-vote fallback target
+# for a level where no checkpoint has been reached yet.
+func find_spawn_position() -> Vector2:
 	for checkpoint in get_tree().get_nodes_in_group("checkpoints"):
 		if checkpoint.is_first_checkpoint:
 			return checkpoint.global_position
@@ -120,11 +138,29 @@ func apply_external_launch(new_velocity: Vector2) -> void:
 	is_jumping = true
 	velocity = new_velocity
 
+# Called by RespawnManager, only for the player each peer actually has
+# authority over, once a strict majority of players in the "players" group
+# have an active respawn vote. Snaps back to target_position (the last
+# checkpoint reached, or find_spawn_position() if none has been yet) the same
+# way an initial spawn works, and clears this player's own vote so the tally
+# doesn't stay past-threshold and immediately trigger again next frame.
+func respawn_to(target_position: Vector2) -> void:
+	position = target_position
+	velocity = Vector2.ZERO
+	charging_jump = false
+	jump_charge_time = 0.0
+	jump_direction = 0.0
+	angle_step_timer = 0.0
+	is_jumping = false
+	has_voted_respawn = false
+	_vote_respawn_timer = 0.0
+
 # Ungated by multiplayer authority (unlike _physics_process) so the label
 # stays in sync with display_name on every peer, including remote players
 # whose name only ever arrives via replication.
 func _process(_delta: float) -> void:
 	name_label.text = display_name
+	vote_checkmark.visible = has_voted_respawn
 	sprite.modulate = sprite_color
 
 	# Name tags live in world space (children of this Node2D), so the shared
@@ -143,6 +179,18 @@ func _physics_process(delta: float) -> void:
 
 	is_pulling_previous = rope_to_previous != null and Input.is_action_pressed("pull_previous")
 	is_pulling_next = rope_to_next != null and Input.is_action_pressed("pull_next")
+
+	# Casting (or refreshing) a respawn vote restarts the wear-off countdown;
+	# otherwise let an already-active vote keep ticking down and clear itself
+	# once it expires — RespawnManager only ever sees the current state here,
+	# it doesn't track vote timing of its own.
+	if Input.is_action_just_pressed("respawn"):
+		has_voted_respawn = true
+		_vote_respawn_timer = VOTE_RESPAWN_DURATION
+	elif has_voted_respawn:
+		_vote_respawn_timer -= delta
+		if _vote_respawn_timer <= 0.0:
+			has_voted_respawn = false
 
 	# Add the gravity.
 	if not is_on_floor():

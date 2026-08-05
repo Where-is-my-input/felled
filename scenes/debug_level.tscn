@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://scenes/door.tscn" id="9_xsg4u"]
 [ext_resource type="PackedScene" path="res://scenes/button.tscn" id="10_jomtx"]
 [ext_resource type="PackedScene" path="res://scenes/conveyor_belt.tscn" id="11_jomtx"]
+[ext_resource type="Script" path="res://scenes/respawn_manager.gd" id="12_respawnmgr"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sugp2"]
 texture = ExtResource("2_0wfyh")
@@ -133,6 +134,9 @@ networkPlayer = ExtResource("1_o5qli")
 
 [node name="RopeManager" type="Node" parent="." unique_id=1508537221]
 script = ExtResource("5_ropemgr")
+
+[node name="RespawnManager" type="Node" parent="."]
+script = ExtResource("12_respawnmgr")
 
 [node name="GameCamera" type="Camera2D" parent="." unique_id=1174489569]
 script = ExtResource("6_dyncam")
