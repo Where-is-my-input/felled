@@ -15,6 +15,16 @@ const MIN_JUMP_INDICATOR_LENGTH = 16.0
 const MAX_JUMP_INDICATOR_LENGTH = 48.0
 const DANGLE_STEER_ACCEL = 2400.0
 const DANGLE_STEER_MAX_SPEED = 220.0
+# Fraction of horizontal speed kept (reversed, i.e. a small bounce-back)
+# after move_and_slide blocks it against something roughly vertical-faced —
+# a wall or another player hit from the side — instead of losing it all
+# outright the way a plain slide response would.
+const WALL_BOUNCE_RETENTION = 0.3
+# Super Mario Bros-style corner correction: while airborne, if horizontal
+# movement is only blocked because the player's hitbox barely clips a wall's
+# top/bottom edge by this many pixels or less, nudge the player around the
+# corner (see _apply_corner_correction) instead of stopping/bouncing them.
+const CORNER_CORRECTION_MAX_OFFSET = 8.0
 # Used only if the level has no checkpoint in the "checkpoints" group with
 # is_first_checkpoint = true — see _find_spawn_position().
 const DEFAULT_SPAWN_POSITION = Vector2(455, 79)
@@ -166,12 +176,17 @@ func _physics_process(delta: float) -> void:
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	if is_on_floor():
+		# Belt's target speed if standing on a conveyor_belt.gd floor this
+		# frame, else zero — see _get_conveyor_push_velocity().
+		var conveyor_push_x: float = _get_conveyor_push_velocity().x
 		if charging_jump:
 			velocity.x = 0.0
 		elif horizontal_input != 0.0:
-			velocity.x = horizontal_input * SPEED
+			# Walking adds on top of the belt instead of being capped by it,
+			# so fighting the belt is possible but riding it is faster.
+			velocity.x = horizontal_input * SPEED + conveyor_push_x
 		else:
-			velocity.x = move_toward(velocity.x, 0, SPEED)
+			velocity.x = move_toward(velocity.x, conveyor_push_x, SPEED)
 	elif not is_jumping:
 		# Airborne but not from a self-initiated jump — dangling off the rope
 		# (or just falling) rather than mid-trajectory, so steering is fine.
@@ -196,7 +211,67 @@ func _physics_process(delta: float) -> void:
 
 	_update_jump_indicator()
 
+	if not is_on_floor():
+		_apply_corner_correction(delta)
+
+	var pre_slide_velocity_x: float = velocity.x
 	move_and_slide()
+	_apply_wall_bounce(pre_slide_velocity_x)
+
+# Checks whether the floor collision that made is_on_floor() true this frame
+# came from a conveyor_belt.gd — if so, returns the speed it wants to carry
+# a standing player at, otherwise Vector2.ZERO. Queried instead of pushed
+# onto the player (unlike rope_pull/rope_kick) because a belt has no
+# per-player state to track between frames.
+func _get_conveyor_push_velocity() -> Vector2:
+	for i in range(get_slide_collision_count()):
+		var collision: KinematicCollision2D = get_slide_collision(i)
+		if collision.get_normal().dot(Vector2.UP) < 0.5:
+			continue
+		var collider: Object = collision.get_collider()
+		if collider is Node and collider.is_in_group("conveyor_belts"):
+			return collider.get_push_velocity()
+	return Vector2.ZERO
+
+# Tries to slip the player past a wall corner it's only barely clipping,
+# instead of letting move_and_slide block/bounce it off the wall face. Tests
+# this frame's horizontal motion from progressively larger vertical offsets
+# (both up and down, smallest first) and snaps to the first one that clears
+# both the nudge itself and the horizontal move — i.e. only kicks in for a
+# shallow edge-graze, not a real head-on wall hit.
+func _apply_corner_correction(delta: float) -> void:
+	if is_zero_approx(velocity.x):
+		return
+	var horizontal_motion: Vector2 = Vector2(velocity.x * delta, 0.0)
+	if not test_move(global_transform, horizontal_motion):
+		return
+	for offset in range(1, int(CORNER_CORRECTION_MAX_OFFSET) + 1):
+		for direction in [-1.0, 1.0]:
+			var nudge: Vector2 = Vector2(0.0, offset * direction)
+			if test_move(global_transform, nudge):
+				continue
+			var nudged_transform: Transform2D = global_transform
+			nudged_transform.origin += nudge
+			if not test_move(nudged_transform, horizontal_motion):
+				global_position += nudge
+				return
+
+# move_and_slide's default response to hitting something solid is to just
+# zero out whatever velocity component was blocked — fine for landing on a
+# floor, but it means bumping a wall or another player sideways (mid-jump,
+# dangling, being flung by the rope, etc.) killed all horizontal momentum
+# outright. This restores a fraction of it as a small bounce-back whenever a
+# collision this frame had a roughly-vertical surface (a wall-like normal,
+# not a floor/ceiling one).
+func _apply_wall_bounce(pre_slide_velocity_x: float) -> void:
+	if abs(pre_slide_velocity_x) < 0.01:
+		return
+	for i in range(get_slide_collision_count()):
+		var collision: KinematicCollision2D = get_slide_collision(i)
+		var normal: Vector2 = collision.get_normal()
+		if abs(normal.x) > 0.5:
+			velocity.x = normal.x * abs(pre_slide_velocity_x) * WALL_BOUNCE_RETENTION
+			break
 
 # Shows where the jump will actually launch, using the same charge_ratio math
 # as the release branch above, so it stays accurate throughout the charge.
